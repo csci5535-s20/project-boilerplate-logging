@@ -1,71 +1,184 @@
-%% This is an abbreviated template from http://www.sigplan.org/Resources/Author/.
-
 \documentclass[acmsmall,review,authorversion]{acmart}
+
+
 \acmDOI{}
 \acmJournal{FACMP}
 \acmVolume{CSCI 5535}
 \acmNumber{Spring 2020}
 
+\usepackage[utf8]{inputenc}
+\usepackage{minted}
+\usepackage{listings}
+\usepackage{hyperref}
+
+\title{Boilerplate logging: Logs for developers by developers}
+\subtitle{Homework 5}
+\author{Evan Lee}
+\affiliation{%
+    \institution{University of Colorado Boulder}
+    \city{Boulder}
+    \state{Colorado}
+}
+\email{evan.n.lee@colorado.edu}
+\date{April 2020}
+
+\keywords{logging, boilerplate}
+
+\setcopyright{rightsretained}
+\acmYear{2020}
+\copyrightyear{2020}
+
 \begin{document}
 
-%%
-%% The "title" command has an optional parameter,
-%% allowing the author to define a "short title" to be used in page headers.
-\title{The Name of the Title is Hope}
-
-%%
-%% The "author" command and its associated commands are used to define
-%% the authors and their affiliations.
-%% Of note is the shared affiliation of the first two authors, and the
-%% "authornote" and "authornotemark" commands
-%% used to denote shared contribution to the research.
-\author{TBD}
-\email{tbd@colorado.edu}
-\author{TBD}
-\email{tbd@colorado.edu}
-\affiliation{%
-  \institution{University of Colorado Boulder}
-}
-
-
-%%
-%% The abstract is a short summary of the work to be presented in the
-%% article.
 \begin{abstract}
-  TBD
+    The logging aspect of any software project always incurs a non-zero developer investment, both from a development and testing perspective as well as a operational and error tracing perspective. A significant portion of the thought and energy behind logging decisions arise from nearly-universal problems and use cases and yet still require each distinct developer to undergo the same rote process of decision making. Even with these factors and costs in play, logging is typically not considered as a first-class issue which leads to hidden cost in terms of development cycles or unnecessary iteration to assist in tracing and debugging. After having identified a widely realized use case of logging in dev-test cycles, I introduced and defined the concept of "boilerplate logging" and developed a python logging library that largely abstracts the human component to logging decisions, simultaneously solving the hidden up-front development cost in logging decision making as well as eliminating any future costs in iterating on reactive postmortem logging.
 \end{abstract}
 
-%%
-%% This command processes the author and affiliation and title
-%% information and builds the first part of the formatted document.
 \maketitle
 
 \section{Introduction}
 
+    % What is the problem?
+    Logging as a language construct is a double-edged sword; developers want all the information they can get for use in troubleshooting, debugging, and development, but this often comes as a latent cost in terms of either lines of code or in logical paths designed specifically to handle development logging use cases. This causes a balancing act: certainly early into the development cycle, logging statements are vastly prevalent in code and the statements themselves are used to great effect on a regular basis. However, this pattern shifts as code becomes more mature. Production processes almost certainly deactivate nearly all of the logs put in place for development and leave lines of code orphaned and without use. In some situations -- for the sake of performance or cleanliness -- additional iteration is performed with the sole purpose of removing log lines that are no longer needed. This balancing act can be represented as a spectrum: from one side being extremely verbose logs to the other side being total lack of logs and only application code.
+    
+    % Why is this problem important?
+    All of this activity is largely universal in the development world and leads to countless development cycles and engineering hours hidden away from the bottom line. In addition, some cases present themselves where application logic is even warped or influenced by the presence of logging which should be considered a second-class citizen when compared to core functionality and logic; take an example where code must be written to decide what a log message should itself say or be formatted as.
+    
+    % Why is the problem hard?
+    To reiterate: the cost of managing this balancing act is hidden at best and outright obscured at worst. On an individual basis, even considering changes to code that have to do with so-called boilerplate logging may incur a small, nearly insignificant cost but these small costs add up over the span of the industry and especially over the span of time. In addition, logging at its heart is a subjective activity. Different developers from different backgrounds using different languages with different frameworks all will use unique styles of logging and make unique decisions on log positions, formatting, substance, and level. This presents difficulty in the qualitative analysis of boilerplate logging broadly and generally throws a wrench into any standardization activity.
+    
+    % What is my contribution?
+    My contribution to this effort is two-fold: a collection and analysis of log usage in widely-used open-source libraries as well as an implementation that displays the ideas and positions presented below. Popular open-source libraries and tools are of particular interest in this space as not only do they have a wide range of contributors, but there is a communal sense of "being a good neighbor" when writing open-source code; particular care is given to the logging statements that are eventually committed and merged into the mainstream base and thus particular thought and effort is given to the balancing act between verbosity and utility.
+
 \section{Overview}
 
-\section{(Contribution 1)}
+    In order to assist the reader in visualizing the analysis and ideas that this paper presents as well as the benefits of implementation, we will cover a code example from a widely-used python library for interacting with SOAP interfaces: \lstinline{python-zeep}. The code snippet can be found in Listing \ref{lst:explosion-example}. \footnote{Source: \href{https://github.com/mvantellingen/python-zeep/blob/4df383021e31372c111bc26cbf2e4535deaee04e/src/zeep/transports.py\#L47}{python-zeep/transports.py}, lines 47-84.} Reading through this 31-line snippet, most of the lines written by the developer deal with logging in one way or another, whether that is making logging decisions (lines 2-5, 12-22) or dealing with emitting log messages themselves (lines 6, 24). In fact, only three lines (lines 8-10) deal with any actual functionality that this method is meant to drive. 
+    
+    One of the explicit goals of boilerplate logging is to provide key information to developers at significant breakpoints in code. The log messages in lines 6 and 24 are concerned mainly with two channels of boilerplate log statements -- line 6 provide a message for the inputs of the example method and line 24 provides a message for the output of the example method. So while the format of the logging output may differ from Snippet \ref{lst:explosion-example} to Snippet \ref{lst:cleaned-example}, the code can be refactored to instead use boilerplate logging to accomplish the same goals by activating the required channels within the boilerplate logger itself.
+    
+    Take the output of the log message as-written on line 6:
 
-\section{(Contribution 2)}
+    \begin{lstlisting}[language=bash][H]
+    HTTP Post to https://api.colorado.edu/:
+    {"test": "test"}
+    \end{lstlisting}
+
+    and take the output of a boilerplate logger log message that would be emitted upon the invocation of the \lstinline{post} method:
+
+    \begin{lstlisting}[language=bash][H]
+    'post' CALLED WITH: 
+    address=https://api.colorado.edu/
+    message={"test": "test"}
+    headers={}
+    \end{lstlisting}
+    
+    The formatting of the messages differ, but the same set of information is imparted to the reader. 
+    
+    In addition, consider the additional benefit that boilerplate logging provides in the above example. Take a situation where a future maintainer of the code must also capture the \lstinline{header} object being provided to the \lstinline{post} method in the logs for any reason; now an additional iteration of code must be developed and committed.
+    
+    \begin{listing}[H]
+    \begin{minted}[
+        mathescape, 
+        numbersep=5pt, 
+        frame=lines, 
+        framesep=2mm, 
+        linenos
+    ]{python}
+    def post(self, address, message, headers):
+        if self.logger.isEnabledFor(logging.DEBUG):
+            log_message = message
+            if isinstance(log_message, bytes):
+                log_message = log_message.decode("utf-8")
+            self.logger.debug("HTTP Post to %s:\n%s", address, log_message)
+    
+        response = self.session.post(
+            address, data=message, headers=headers, timeout=self.operation_timeout
+        )
+    
+        if self.logger.isEnabledFor(logging.DEBUG):
+            media_type = get_media_type(
+                response.headers.get("Content-Type", "text/xml")
+            )
+    
+            if media_type == "multipart/related":
+                log_message = response.content
+            else:
+                log_message = response.content
+                if isinstance(log_message, bytes):
+                    log_message = log_message.decode(response.encoding or "utf-8")
+    
+            self.logger.debug(
+                "HTTP Response from %s (status: %d):\n%s",
+                address,
+                response.status_code,
+                log_message,
+            )
+    
+        return response
+    \end{minted}
+    \caption{An example of code explosion due to boilerplate logging.}
+    \label{lst:explosion-example}
+    \end{listing}
+    
+    \begin{listing}[H]
+    \begin{minted}[
+        mathescape, 
+        numbersep=5pt, 
+        frame=lines, 
+        framesep=2mm, 
+        linenos
+    ]{python}
+    import boilerplate as bp
+    
+    """
+    Not passing anything or passing "all" is the same as:
+    @bp.log("inputs")
+    @bp.log("outputs")
+    """
+    
+    @bp.log
+    def post(self, address, message, headers):
+        response = self.session.post(
+            address, data=message, headers=headers, timeout=self.operation_timeout
+        )
+        return response
+    \end{minted}
+    \caption{The same code as Listing \ref{lst:explosion-example}, but using the boilerplate logger.}
+    \label{lst:cleaned-example}
+    \end{listing}
+
+
+    The contributions of this paper include:
+    
+    \begin{itemize}
+        \item The definition and boundaries of boilerplate logging.
+        \item The concept of "channels" which are sub-categories of boilerplate logging with different levels and formats.
+        \item Data and analysis of widely-used open source projects implemented in python and the characterization of logging statements within.
+        \item An implementation of the one of the idea presented in a Python 3+ logging library.
+    \end{itemize}
+    
+
+\section{Research \& Analysis}
+
+\section{Implementation}
 
 \section{Empirical Evaluation}
 
 \section{Related Work}
 
+    \subsection{Standarization.} The industry has made similar efforts in the area of standarization of logs, which really deals with the abstraction of the human element away and instead introduces a controlled process around software logging. Some ideas introduced are the concepts of log composition \cite{DBLP:conf/dls/Marron18} and enhancement \cite{DBLP:journals/tocs/YuanZPZS12}. However, this research deals explicitly with the idea of standardization through total abstraction, whereas similar efforts continue to leave an aspect of the human element in the practice of logging.
+                    
+    \subsection{Decision making.} There is more interest in understanding the motivation and usage behind log statements. Other efforts include attempting to understand the justification behind the locations developers place logging statements \cite{DBLP:conf/icse/FuZHLDLZX14} and the quality and characteristics behind logging statements themselves \cite{DBLP:conf/icse/YuanPZ12}. This research takes a similar approach to perform its analysis but utilizes the insights gleaned in a more naïve context, preferring instead a more black-and-white, dumb approach to categorization or use case analysis.
+
 \section{Conclusion}
 
-%%
-%% The acknowledgments section is defined using the "acks" environment
-%% (and NOT an unnumbered section). This ensures the proper
-%% identification of the section in the article metadata, and the
-%% consistent spelling of the heading.
+
 \begin{acks}
-TBD
+    TBD
 \end{acks}
 
-%%
-%% The next two lines define the bibliography style to be used, and
-%% the bibliography file.
+
 \bibliographystyle{ACM-Reference-Format}
-\bibliography{paper}
+\bibliography{refs}
+
 \end{document}
