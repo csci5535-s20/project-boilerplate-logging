@@ -11,7 +11,7 @@
 \usepackage{listings}
 \usepackage{hyperref}
 
-\title{Boilerplate logging: Logs for developers by developers}
+\title{Boilerplate logger: A logger for developers by developers}
 \subtitle{Homework 5}
 \author{Evan Lee}
 \affiliation{%
@@ -45,7 +45,7 @@
     All of this activity is largely universal in the development world and leads to countless development cycles and engineering hours hidden away from the bottom line. In addition, some cases present themselves where application logic is even warped or influenced by the presence of logging which should be considered a second-class citizen when compared to core functionality and logic; take an example where code must be written to decide what a log message should itself say or be formatted as.
     
     % Why is the problem hard?
-    To reiterate: the cost of managing this balancing act is hidden at best and outright obscured at worst. On an individual basis, even considering changes to code that have to do with so-called boilerplate logging may incur a small, nearly insignificant cost but these small costs add up over the span of the industry and especially over the span of time. In addition, logging at its heart is a subjective activity. Different developers from different backgrounds using different languages with different frameworks all will use unique styles of logging and make unique decisions on log positions, formatting, substance, and level. This presents difficulty in the qualitative analysis of boilerplate logging broadly and generally throws a wrench into any standardization activity.
+    To reiterate: the cost of managing this balancing act is hidden at best and outright obscured at worst. Developers even considering changes that have to do with logging incur a small, nearly insignificant cost. These small costs add up over the span of the industry and especially over the span of time. In addition, logging at its heart is a subjective activity. Different developers from different backgrounds using different languages with different frameworks all will use unique styles of logging and make unique decisions on log positions, formatting, substance, and level. This presents difficulty in the qualitative analysis of logging and generally throws a wrench into any standardization activity.
     
     % What is my contribution?
     My contribution to this effort is two-fold: a collection and analysis of log usage in widely-used open-source libraries as well as an implementation that displays the ideas and positions presented below. Popular open-source libraries and tools are of particular interest in this space as not only do they have a wide range of contributors, but there is a communal sense of "being a good neighbor" when writing open-source code; particular care is given to the logging statements that are eventually committed and merged into the mainstream base and thus particular thought and effort is given to the balancing act between verbosity and utility.
@@ -74,7 +74,7 @@
     
     The formatting of the messages differ, but the same set of information is imparted to the reader. 
     
-    In addition, consider the additional benefit that boilerplate logging provides in the above example. Take a situation where a future maintainer of the code must also capture the \lstinline{header} object being provided to the \lstinline{post} method in the logs for any reason; now an additional iteration of code must be developed and committed.
+    In addition, consider the additional benefit that boilerplate logging provides in the above example. Take a situation where a future maintainer of the code must also capture the \lstinline{header} object being provided to the \lstinline{post} method in the logs for any reason -- now an additional iteration of code must be developed and committed.
     
     \begin{listing}[H]
     \begin{minted}[
