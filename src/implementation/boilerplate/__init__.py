@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler(sys.stdout)
 handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter("[%(asctime)s] [bp] %(message)s")
+formatter = logging.Formatter("[%(asctime)s] %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
@@ -64,15 +64,12 @@ def log(channels: Union[List[AnyStr], str] = []) -> Callable:
 
             pf = f'{func.__module__}.{getattr(func, "__qualname__", "__name__")}'
 
-            if hasattr(args[0], "__class__"):
-                logged_args = ("self",) + args[1:]
-
             if "inputs" in channels:
-                logger.debug(f"[{pf}]: [args: {logged_args}] [kwargs: {kwargs}]")
+                logger.debug(f"[{pf}] inputs: [args: {args}] [kwargs: {kwargs}]")
 
             retval = func(*args, **kwargs)
             if "outputs" in channels:
-                logger.debug(f"[{pf}]: [ret: {retval}]")
+                logger.debug(f"[{pf}] returns: [{retval}]")
             return retval
 
         return wrapper
@@ -101,12 +98,9 @@ def _(func: Callable) -> Callable:
 
         pf = f'{func.__module__}.{getattr(func, "__qualname__", "__name__")}'
 
-        if hasattr(args[0], "__class__"):
-            logged_args = ("self",) + args[1:]
-
-        logger.debug(f"[{pf}]: [args: {logged_args}] [kwargs: {kwargs}]")
+        logger.debug(f"[{pf}] inputs: [args: {args}] [kwargs: {kwargs}]")
         retval = func(*args, **kwargs)
-        logger.debug(f"[{pf}]: [ret: {retval}]")
+        logger.debug(f"[{pf}] returns: [{retval}]")
         return retval
 
     return wrapper
