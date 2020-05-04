@@ -1,5 +1,7 @@
 \documentclass[acmsmall,review,authorversion]{acmart}
+\usepackage{multirow}
 
+\graphicspath{images}
 
 \acmDOI{}
 \acmJournal{FACMP}
@@ -168,9 +170,18 @@ We gathered both qualitative and quantitative data with respect to logging patte
 
 \subsection{Data}
 
-We built a data set by analyzing various open and closed source projects of different purposes and categorizing the nature of logging statements within source code. We discovered a pattern in open source software that we conjecture is due to the ``good citizen'' nature of open source projects: most log functionality is entirely disabled or provided via hooks and left as an exercise to the caller. In fact, many open source projects perform some form of linting and explicitly require that logging statements that are considered to be boilerplate be left out of pull requests into the main branch. This fact correlates with our view that boilerplate logging is primarily a development activity and generally is not considered suitable for production usages. This also reinforced our understanding that boilerplate logging was in use, but the cost was felt twofold: once in the developer writing code that contains boilerplate logging statements for use in the course of development, and the second time in that developer needing to ``clean up'' the boilerplate logs for use in production.
-
 \subsubsection{Quantitative Metrics}
+
+We built a data set by analyzing various open and closed source projects of different purposes and categorizing the nature of logging statements within source code.
+
+The criteria we used in selecting open source projects for analysis were:
+
+\begin{itemize}
+    \item actively developed and maintained by the community at large; latest commit or pull request within the last 90 days.
+    \item extensively used in other projects; a GitHub ``used by'' metric of at least 1000.
+    \item a premiere library in the target functionality of choice (widely recommended as the library of choice for that particular use case); present on the Awesome Python list \cite{awesome-python}.
+    \item made use internally of logging; either built-in Python \code{logging} or other third-party logging library.
+\end{itemize}
 
 For those open-source projects that we identified made some use of logging internally and for the closed source projects we had access to, we collected the following metrics for analysis:
 
@@ -183,7 +194,25 @@ For those open-source projects that we identified made some use of logging inter
 
 These metrics deal with one area of development cost that we view as "unnecessary iteration" and are measurable and concrete.
 
-\textit{Not quite done gathering/analyzing for Homework 6 -- will be done by end of semester.}
+The raw, low level results are available for inspection as requested. Table \ref{tab:agg-data} on page \pageref{tab:agg-data} is an an aggregated summary of our collected findings.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|r|c|c|}
+\hline
+\textbf{source code status}                  & \textbf{open}               & \textbf{closed}            \\ \hline
+\textbf{\# of files}                         & 812                         & 141                        \\ \hline
+\textbf{\# of lines}                         & 115804                      & 21621                      \\ \hline
+\textbf{average lines per file}              & 142.62                      & 153.34                     \\ \hline
+\textbf{average logging lines per file}      & 0.39                        & 5.57                       \\ \hline
+\textbf{average boilerplate lines per file}  & 0.06                        & 1.87                       \\ \hline
+\textbf{log lines (\% of total)}             & 0.28\%                      & 3.70\%                   \\ \hline
+\textbf{boilerplate lines (\% of log lines)} & 1.63\%                      & 21.88\%                    \\ \hline
+\textbf{boilerplate lines (\% of total)}     & 0.04\%                      & 1.17\%                     \\ \hline
+\end{tabular}
+\caption{Aggregated statistics over analyzed source code files.}
+\label{tab:agg-data}
+\end{table}
 
 \subsubsection{Qualitative Metrics}
 
@@ -196,13 +225,31 @@ A second area of development cost we identify as ``development time/development 
     \item During development or iteration on a \textbf{previously-existing} feature or code base, what percentage of work would you say deals in one way or another with boilerplate logging?
 \end{itemize}
 
-\textit{Only received ~25 responses at time of submission (mostly work + friend contacts).}
+Twenty-nine respondents answered the survey we sent out to professional engineers and colleagues in the industry.
+
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{images/bp_survey_time_new.png}
+\caption{Responses to: ``During development of a \textbf{new} feature, what percentage of work would you say deals in one way or another with boilerplate logging?''. X-Axis represents percentage of work (take value times 10\%), Y-Axis represents number of responses.}
+\label{fig:new}
+\centering
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{images/bp_survey_time_prev.png}
+\caption{Responses to: ``During development or iteration on a \textbf{previously-existing} feature or code base, what percentage of work would you say deals in one way or another with boilerplate logging?''.}
+\label{fig:prev}
+\centering
+\end{figure}
 
 \subsection{Conclusions}
 
+From the quantitative data gathered, we discovered a pattern in open source software that we conjecture is due to the ``good citizen'' nature of open source projects: most log functionality is entirely disabled or provided via hooks and left as an exercise to the caller. In fact, many open source projects perform some form of linting and explicitly require that logging statements that are considered to be boilerplate be left out of pull requests into the main branch. This fact correlates with our view that boilerplate logging is primarily a development activity and generally is not considered suitable for production usages. This also reinforced our understanding that boilerplate logging was in use, but the cost was felt twofold: once in the developer writing code that contains boilerplate logging statements for use in the course of development, and the second time in that developer needing to ``clean up'' the boilerplate logs for use in production.
+
+These conclusions and understandings were also reinforced by the qualitative data gathered. Even with the color that the data we gathered via survey is subjective, we conclude that effort expended into boilerplate logging during development is not insignificant. The majority of developer responses range from 20-40\% of work spent on boilerplate logging activities. Given our findings with respect to downstream statistics like proportion of boilerplate lines in total (Table \ref{tab:agg-data}), these statistics support our assertions that boilerplate logging is a largely ``hidden'' cost that incurs repeated cost in terms of development cycles and at each iteration.
+
 \section{Implementation}
 
-To display our ideas around the concept of boilerplate logging, we implemented a simple logging library in Python, aptly named \code{boilerplate}. Our initial iteration of the \code{boilerplate} library includes functionality to abstract two identified ``boilerplate'' use cases: (a) inputs and outputs to a function or method and (b) a exception ``trace'' logger that caches the inputs and outputs of N calls (configurable) leading up to a thrown exception to provide more information than a typical stacktrace. Included with the implementation is an example Python script showing the features provided by our \code{boilerplate} library as well as a property-based unit test suite.
+To display our ideas around the concept of boilerplate logging, we implemented a simple logging library in Python, aptly named \code{boilerplate}. Our initial iteration of the \code{boilerplate} library includes functionality to abstract two identified ``boilerplate'' use cases: (a) inputs and outputs to a function or method and (b) a exception ``trace'' logger that caches the inputs and outputs of N calls (configurable) leading up to a thrown exception to provide more information than a typical stacktrace. Included with the implementation is an example Python script showing the features provided by our \code{boilerplate} library.
 
 \subsection{Inputs \& Outputs}
 
@@ -210,23 +257,23 @@ The main entry point to our implemented logging library is as function and metho
 
 \begin{listing}[H]
     \begin{minted}[mathescape, numbersep=5pt, frame=lines, framesep=2mm, linenos]{python}
-    import boilerplate as bp
+import boilerplate as bp
 
-    @bp.log
-    def add(x, y):
-        return x + y
+@bp.log
+def add(x, y):
+    return x + y
 
-    @bp.log("inputs")
-    def subtract(x, y):
-        return x - y
+@bp.log("inputs")
+def subtract(x, y):
+    return x - y
 
-    @bp.log("outputs")
-    def multiply(x, y):
-        return x * y
+@bp.log("outputs")
+def multiply(x, y):
+    return x * y
 
-    add(1, 1)
-    subtract(2, 1)
-    multiply(4, 5)
+add(1, 1)
+subtract(2, 1)
+multiply(4, 5)
     \end{minted}
     \caption{Invocation examples of the boilerplate logger.}
     \label{lst:invocation}
@@ -249,20 +296,73 @@ Since our library makes use of the Python standard logging library and is namesp
 
 \subsection{Tracing}
 
-\textit{This section is not yet implemented.}
-
 Typical stack traces are often noisy and provide trace-backs that simultaneously contain too much and not enough information. Java developers in particular often have to deal with large, noisy stack traces that contain system or base language calls and provide no pertinent information to the developer besides being able to trace where exactly an exception occurred in terms of line number and column number. Oftentimes this information is not even sufficient to help the developer track down the issue. Development cycles are then wasted in placing debug logging statements at certain points along the execution path in order to provide a view into the changing state of a program.
 
 Our logging library implements a feature that allows developers to register functions that may be in the critical path of an error or exception occurring. This functionality is unique in that the logs themselves are not emitted unless an exception occurs in one of the registered functions or there is an explicit call to flush the logs and emit them to the target location. This method of tracing and emitting keeps logs clean and provides more relevant, less noisy error analysis tools to developers in the course of development.
 
-This registration action is exposed by our library again as a function decorator, with the syntax being \code{@boilerplate.register("trace")}. Trace logs have both ``inputs'' and ``outputs'' channels activated for all annotated calls. Log statements are pushed to an in-memory buffer and trimmed to a configurable length in order to only keep the most relevant calls leading up to the exception.
+This registration action is exposed by our library again as a function decorator, with the syntax being \code{@boilerplate.trace}. Trace logs have both ``inputs'' and ``outputs'' channels activated for all annotated calls. Log statements are pushed to an in-memory buffer and trimmed to a configurable length in order to only keep the most relevant calls leading up to the exception.
 
-Upon the trigger of an exception occurring in a registered function or a manual trigger by the developer via code, the logs in memory are flushed using the Python standard logging library to wherever the target location is (configurable, standard out by default).
+Upon the trigger of an unhandled exception occurring or on a manual trigger by the developer in code, the logs in memory are flushed using the Python standard logging library to wherever the target location is (configurable, standard out by default).
+
+\begin{listing}[H]
+    \begin{minted}[mathescape, numbersep=5pt, frame=lines, framesep=2mm, linenos]{python}
+import boilerplate as bp
+
+@bp.trace
+def add(x, y):
+    return x + y
+
+@bp.trace
+def subtract(x, y):
+    return x - y
+
+
+@bp.trace
+def multiply(x, y):
+    return x * y
+
+add(1, 1)
+subtract(2, 1)
+bp.flush()
+
+bp.register_uncaught_exception_handler()
+multiply(4, 5)
+raise Exception("trigger flush of boilerplate logs")
+    \end{minted}
+    \caption{Trace examples of the boilerplate trace logger.}
+    \label{lst:trace-invocation}
+\end{listing}
+
+
+\begin{listing}[H]
+    \begin{minted}[mathescape, numbersep=5pt, frame=lines, framesep=2mm, linenos]{bash}
+== BOILERPLATE TRACE:
+[__main__.add] inputs: [args: (1, 1)] [kwargs: {}]
+[__main__.add] returns: [2]
+[__main__.subtract] inputs: [args: (2, 1)] [kwargs: {}]
+[__main__.subtract] returns: [1]
+== END BOILERPLATE TRACE ==
+Registered as uncaught exception handler!
+Exception occurred; flushing boilerplate trace.
+== BOILERPLATE TRACE:
+[__main__.multiply] inputs: [args: (4, 5)] [kwargs: {}]
+[__main__.multiply] returns: [20]
+== END BOILERPLATE TRACE ==
+Traceback (most recent call last):
+  File "trace_example.py", line 25, in <module>
+    raise Exception("trigger flush of boilerplate logs")
+Exception: trigger flush of boilerplate logs
+    \end{minted}
+    \caption{Trace logging output of the boilerplate logging library, of the code from Listing \ref{lst:trace-invocation}.}
+    \label{lst:trace-log-examples}
+\end{listing}
 
 
 \section{Evaluation}
 
-We subscribed to four measures of success, each of which relates to the sectors of cost associated with boilerplate logging. In order to measure the impact of our success, we developed two code bases -- the control iteration does not use our boilerplate logging library and the test iteration is the same code base, but manually refactored to use our boilerplate logging library.
+We subscribed to two measures of success, each of which relates to the sectors of cost associated with boilerplate logging. The first is logical lines of code or LLOC, which tracks the cost associated with needing to write lines of code to support boilerplate use cases. The second is the maintainability index or the maintainability score, which is expanded upon below. The maintainability index tracks the cost associated with future support and iteration on a code base by future developers.
+
+In order to measure the impact of our success, we developed two code bases -- the control iteration does not use our boilerplate logging library and the test iteration is the same code base, but manually refactored to use our boilerplate logging library.
 
 We made use of the tool Radon \cite{radon}, which provides the four syntactic program metrics we are interested in:
 
@@ -278,16 +378,46 @@ When compared to our control iteration, the success thresholds for our test iter
 \begin{itemize}
     \item a \textbf{decrease} in lines of code
     \item an \textbf{increase} in maintainability
-    \item a \textbf{decrease} in time required to program
 \end{itemize}
 
 Some other metrics we would like to see changes in across iterations, but are not fully considered in terms of evaluation are:
 
 \begin{itemize}
+        \item a \textbf{decrease} in time required to program
     \item a \textbf{decrease} in cyclomatic complexity
     \item a \textbf{decrease} in expected bug count
 \end{itemize}
 
+We chose an inner utility module in a closed-source application that we believed had particular potential to improve through the use of boilerplate logging. This particular utility module served the rest of the application by holding the functionality for reaching out to external systems such as other devices or APIs to fetch data, and so held a lot of potential in having many particular entry and exit points for data.
+
+We first used Radon to record the metrics of interest before we refactored the module to instead use our boilerplate logging library. We then used Radon to inspect the metrics after refactor. See Table \ref{tab:evaluation-metrics} for a summary of results.
+
+For the metrics that were targeted explicitly, our \code{boilerplate} logging library succeeded with an across the board improvement in both logical lines of code and maintainability index. Of particular interest were the other complexity and syntactic measure metrics that \code{boilerplate} could not move the needle significantly in this particular example. The time required, McCabe complexity, and expected bugs did not change in any significant capacity. We conjecture this is due to the nature of the example chosen, where the code did not include any logical code decisions with regards to logging. Take our original example from \code{python-zeep}, \code{transports.py} where the original average McCabe complexity is \textbf{3.125} and the post-refactor McCabe complexity is \textbf{2.25} (-38.89\%). We consider this example a best-case display of the performance of our \code{boilerplate} library.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|r|r|c|c|c|c|c|}
+\hline
+ &  & \textbf{File 1} & \textbf{2} & \textbf{3} & \textbf{4} & \textbf{5} \\ \hline
+\multirow{3}{*}{\textbf{logical lines of code}} & original & 44 & 308 & 97 & 64 & 255 \\ \cline{2-7}
+ & refactored & 43 & 295 & 84 & 63 & 249 \\ \cline{2-7}
+ & change & -2.27\% & -4.22\% & -13.4\% & -1.56\% & -2.35\% \\ \hline
+\multirow{3}{*}{\textbf{maintainability score}} & original & 77.65 & 38.10 & 65.85 & 60.62 & 31.04 \\ \cline{2-7}
+ & refactored & 78.30 & 38.94 & 67.75 & 61.75 & 31.41 \\ \cline{2-7}
+ & change & +0.83\% & +2.16\% & +2.80\% & +1.83\% & +1.18\% \\ \hline
+\multirow{3}{*}{\textbf{time required score}} & original & 0.645 & 484.207 & 41.743 & 31.523 & 524.023 \\ \cline{2-7}
+ & refactored & 0.645 & 484.207 & 41.743 & 31.523 & 524.023 \\ \cline{2-7}
+ & change & 0.0 & 0.0 & 0.0 & 0.0 & 0.0 \\ \hline
+\multirow{3}{*}{\textbf{McCabe complexity}} & original & 2.2 & 5.056 & 6.5 & 4.5 & 5.0 \\ \cline{2-7}
+ & refactored & 2.2 & 5.056 & 6.25 & 4.5 & 5.0 \\ \cline{2-7}
+ & change & 0.0 & 0.0 & -0.25 & 0.0 & 0.0 \\ \hline
+\multirow{3}{*}{\textbf{expected bug count}} & original & 0.003 & 0.354 & 0.066 & 0.061 & 0.490 \\ \cline{2-7}
+ & refactored & 0.003 & 0.354 & 0.066 & 0.061 & 0.489 \\ \cline{2-7}
+ & change & 0.0 & 0.0 & 0.0 & 0.0 & -0.001 \\ \hline
+\end{tabular}
+\caption{Radon syntactic metrics, original \& refactored.}
+\label{tab:evaluation-metrics}
+\end{table}
 
 \section{Related Work}
 
@@ -297,13 +427,15 @@ Some other metrics we would like to see changes in across iterations, but are no
 
 \section{Conclusion}
 
+This paper introduced and defined the concept of \underline{boilerplate logging} and iterated the use cases under the boilerplate umbrella. We explored the sectors of cost associated with boilerplate logging and performed qualitative and quantitative analysis on data gathered from existing code bases and responses to the survey we conducted to showcase our ideas in numbers and data. Out of the use cases explored, we developed a Python logging library aptly called \code{boilerplate} implemented to address two of the use cases identified as ``boilerplate''. Finally, we showed that leveraging the use of \code{boilerplate} has the potential to improve metrics such as logical lines of code, maintainability score, and McCabe complexity, providing another tool to increase efficiency of development across the industry.
 
 \begin{acks}
-    TBD
+I would like to thank Professor Evan Chang and Benno Stein for their teachings and feedback on iterations of this paper. I would also like to thank the friends and colleagues that responded to the survey and spent their time and effort to provide their data.
 \end{acks}
 
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{refs}
+
 
 \end{document}
