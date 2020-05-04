@@ -1,65 +1,25 @@
 import boilerplate as bp
 
-import utility
-
 
 @bp.trace
-def test1(x, y, operator="+"):
+def add(x, y):
     return x + y
 
 
-class TestClass:
-    @bp.trace
-    def __init__(self, x, y, operator):
-        self.x = x
-        self.y = y
-        self.op = operator
-
-    @bp.trace
-    def run(self):
-        return self.x + self.y
-
-    @staticmethod
-    @bp.trace
-    def statik(x, y):
-        return x + y
-
-    @classmethod
-    @bp.trace
-    def klass(cls):
-        return "test_output"
-
-    @bp.trace
-    def calls_other_module(self):
-        return utility.utility_function_one("te", "st", separator="/")
+@bp.trace
+def subtract(x, y):
+    return x - y
 
 
-def main():
-    bp.register_uncaught_exception_handler()
-
-    x = 1
-    y = 2
-    operator = "+"
-
-    test1(x, y, operator)
-
-    test = TestClass(x, y, operator)
-    test.run()
-    test.statik(x, y)
-    test.klass()
-
-    bp.flush()
-
-    test.calls_other_module()
-
-    utility.utility_function_one("boiler", "plate", separator="!")
-    try:
-        utility.raises_exception()
-    except Exception:
-        pass
-
-    raise Exception("test")
+@bp.trace
+def multiply(x, y):
+    return x * y
 
 
-if __name__ == "__main__":
-    main()
+add(1, 1)
+subtract(2, 1)
+bp.flush()
+
+bp.register_uncaught_exception_handler()
+multiply(4, 5)
+raise Exception("trigger flush of boilerplate logs")
