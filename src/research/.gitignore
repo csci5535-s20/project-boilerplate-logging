@@ -1,1 +1,3 @@
 data/*
+venv-analysis
+stats/closed-source/*

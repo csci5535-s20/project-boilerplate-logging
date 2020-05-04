@@ -15,8 +15,6 @@ Open source libraries analyzed:
 
 - https://github.com/mvantellingen/python-zeep
 - https://github.com/paramiko/paramiko
-- https://github.com/zopefoundation/ZODB
-- https://github.com/moggers87/salmon
 - https://github.com/django/django
 - https://github.com/sqlalchemy/sqlalchemy
 
@@ -25,9 +23,18 @@ Closed source code bases analyzed (general description):
 - A configuration management API
 - An ETL (extract-transform-load) process
 - A aggregation/forwarder process
-- A data repository server
-- A rules engine
+- A data regeneration service
 
+### Steps
+
+[Radon](https://pypi.org/project/radon/) `raw` metrics were used to compute logical lines of code, or **LLOC**, using (`python-zeep` as an example) `radon raw data/python-zeep/src -s -j --output-file stats/python-zeep.json`.
+
+The custom `analyzer.py` python script was then run on each of the files output by `Radon` and was used to
+detect the number of boilerplate lines of code or **BBPLLOC**. This step also calculated _maximal gain ratio_ or **bpgr**, which was computed as:
+
+```
+bpgr = (lloc - bplloc) / lloc
+```
 
 ## Qualitative
 
